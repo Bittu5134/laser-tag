@@ -2,8 +2,8 @@
 	import { onMount } from 'svelte';
 
 	// Fixed "world" coordinate space. All game logic uses these units.
-	const WORLD_W = 960;
-	const WORLD_H = 600;
+	const WORLD_W = 1000;
+	const WORLD_H = 1000;
 
 	// Change these from your game logic whenever you like.
 	let player = { x: WORLD_W / 2, y: WORLD_H / 2 };
@@ -73,11 +73,11 @@
 			ctx.strokeStyle = 'rgba(148, 163, 184, 0.10)';
 			ctx.lineWidth = 1;
 			ctx.beginPath();
-			for (let x = 0; x <= WORLD_W; x += 40) {
+			for (let x = 0; x <= WORLD_W; x += 50) {
 				ctx.moveTo(x, 0);
 				ctx.lineTo(x, WORLD_H);
 			}
-			for (let y = 0; y <= WORLD_H; y += 40) {
+			for (let y = 0; y <= WORLD_H; y += 50) {
 				ctx.moveTo(0, y);
 				ctx.lineTo(WORLD_W, y);
 			}
@@ -174,5 +174,5 @@
 
 <canvas
 	bind:this={canvas}
-	class="block aspect-[8/5] w-full touch-none rounded-xl border border-neutral-800 bg-black"
+	class="block aspect-square w-full touch-none rounded-xl border border-neutral-800 bg-black"
 ></canvas>

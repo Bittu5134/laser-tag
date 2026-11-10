@@ -6,13 +6,14 @@
 	<title>BlindLaser</title>
 </svelte:head>
 
-<main class="min-h-dvh bg-neutral-950 px-4 py-8 text-neutral-100 sm:px-8">
-	<div class="mx-auto flex max-w-4xl flex-col gap-4">
-		<header class="flex items-baseline justify-between gap-4">
-			<h1 class="text-2xl font-semibold tracking-tight">BlindLaser</h1>
-			<p class="text-sm text-neutral-400">Move to aim · Click to fire</p>
-		</header>
-
+<main
+	class="grid h-dvh w-full place-items-center overflow-hidden bg-neutral-950 p-2 text-neutral-100"
+>
+	<!-- Largest square that fits the viewport: min(available width, available height). -->
+	<div class="relative aspect-square w-[min(100%,calc(100dvh-1rem))]">
 		<GameCanvas />
+		<p class="pointer-events-none absolute inset-x-0 bottom-3 text-center text-xs text-neutral-500">
+			Move to aim · Click to fire
+		</p>
 	</div>
 </main>
