@@ -1,16 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	// Fixed "world" coordinate space. All game logic uses these units.
+	// Fixed world coordinate space. All game logic uses these units.
 	const WORLD_W = 1000;
 	const WORLD_H = 1000;
 
-	// Change these from your game logic whenever you like.
 	let player = { x: WORLD_W / 2, y: WORLD_H / 2 };
 	let aim = { x: WORLD_W * 0.75, y: WORLD_H * 0.35 };
-
-	type Beam = { x1: number; y1: number; x2: number; y2: number; life: number };
-	let beams: Beam[] = [];
 
 	let canvas: HTMLCanvasElement;
 
@@ -18,9 +14,8 @@
 		const ctx = canvas.getContext('2d')!;
 		let raf = 0;
 		let alive = true;
-		let last = performance.now();
 
-		// Keep the bitmap resolution in sync with its CSS size (and device pixel ratio).
+		// Keep the bitmap resolution in sync with its CSS size and DPR.
 		function resize() {
 			const dpr = Math.min(window.devicePixelRatio, 2);
 			const rect = canvas.getBoundingClientRect();
@@ -47,99 +42,44 @@
 
 		function onPointerDown(e: PointerEvent) {
 			aim = toWorld(e);
-			beams.push({
-				x1: player.x,
-				y1: player.y,
-				x2: aim.x,
-				y2: aim.y,
-				life: 1
-			});
-			if (beams.length > 8) beams.shift();
+			player = { ...aim }; // temporary: move the ball to the click
 		}
 
 		canvas.addEventListener('pointermove', onPointerMove);
 		canvas.addEventListener('pointerdown', onPointerDown);
 
-		function draw(dt: number) {
+		function draw() {
 			// Map world units onto the bitmap.
 			ctx.setTransform(canvas.width / WORLD_W, 0, 0, canvas.height / WORLD_H, 0, 0);
-			ctx.clearRect(0, 0, WORLD_W, WORLD_H);
 
 			// Background
 			ctx.fillStyle = '#05070c';
 			ctx.fillRect(0, 0, WORLD_W, WORLD_H);
 
-			// Grid (helps you see the coordinate space)
-			ctx.strokeStyle = 'rgba(148, 163, 184, 0.10)';
-			ctx.lineWidth = 1;
-			ctx.beginPath();
-			for (let x = 0; x <= WORLD_W; x += 50) {
-				ctx.moveTo(x, 0);
-				ctx.lineTo(x, WORLD_H);
-			}
-			for (let y = 0; y <= WORLD_H; y += 50) {
-				ctx.moveTo(0, y);
-				ctx.lineTo(WORLD_W, y);
-			}
-			ctx.stroke();
-
-			// Age out old beams
-			for (const b of beams) b.life -= dt * 0.7;
-			beams = beams.filter((b) => b.life > 0);
-
-			// Faint aim line
+			// Laser line from player to aim
 			ctx.save();
-			ctx.setLineDash([6, 8]);
-			ctx.strokeStyle = 'rgba(34, 211, 238, 0.35)';
-			ctx.lineWidth = 2;
 			ctx.beginPath();
+			ctx.lineCap = 'round';
+			ctx.lineWidth = 2;
+			ctx.strokeStyle = '#ff0000';
 			ctx.moveTo(player.x, player.y);
 			ctx.lineTo(aim.x, aim.y);
 			ctx.stroke();
 			ctx.restore();
 
-			// Lasers
+			// Player
 			ctx.save();
-			ctx.lineCap = 'round';
-			for (const b of beams) {
-				ctx.globalAlpha = Math.max(0, b.life);
-
-				// Outer glow
-				ctx.shadowColor = '#22d3ee';
-				ctx.shadowBlur = 16;
-				ctx.strokeStyle = '#22d3ee';
-				ctx.lineWidth = 6;
-				ctx.beginPath();
-				ctx.moveTo(b.x1, b.y1);
-				ctx.lineTo(b.x2, b.y2);
-				ctx.stroke();
-
-				// Bright core
-				ctx.shadowBlur = 0;
-				ctx.strokeStyle = '#e0f2fe';
-				ctx.lineWidth = 2;
-				ctx.beginPath();
-				ctx.moveTo(b.x1, b.y1);
-				ctx.lineTo(b.x2, b.y2);
-				ctx.stroke();
-			}
-			ctx.restore();
-
-			// Player circle
-			ctx.save();
-			ctx.shadowColor = '#67e8f9';
-			ctx.shadowBlur = 24;
 			ctx.fillStyle = '#e0f2fe';
 			ctx.beginPath();
-			ctx.arc(player.x, player.y, 16, 0, Math.PI * 2);
+			ctx.arc(player.x, player.y, 20, 0, Math.PI * 2);
 			ctx.fill();
 			ctx.restore();
 
-			// Crosshair at the aim point
+			// Crosshair
 			ctx.save();
-			ctx.strokeStyle = 'rgba(224, 242, 254, 0.7)';
-			ctx.lineWidth = 1.5;
 			ctx.beginPath();
+			ctx.strokeStyle = '#e0f2feb3';
+			ctx.lineWidth = 1.5;
 			ctx.arc(aim.x, aim.y, 8, 0, Math.PI * 2);
 			ctx.moveTo(aim.x - 14, aim.y);
 			ctx.lineTo(aim.x - 4, aim.y);
@@ -153,11 +93,9 @@
 			ctx.restore();
 		}
 
-		function frame(now: number) {
+		function frame() {
 			if (!alive) return;
-			const dt = Math.min((now - last) / 1000, 0.05);
-			last = now;
-			draw(dt);
+			draw();
 			raf = requestAnimationFrame(frame);
 		}
 		raf = requestAnimationFrame(frame);
