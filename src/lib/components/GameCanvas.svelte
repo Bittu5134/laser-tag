@@ -42,7 +42,7 @@
 
 		function onPointerDown(e: PointerEvent) {
 			aim = toWorld(e);
-			player = { ...aim }; // temporary: move the ball to the click
+			player = { ...aim };
 		}
 
 		canvas.addEventListener('pointermove', onPointerMove);
@@ -55,17 +55,6 @@
 			// Background
 			ctx.fillStyle = '#05070c';
 			ctx.fillRect(0, 0, WORLD_W, WORLD_H);
-
-			// Laser line from player to aim
-			ctx.save();
-			ctx.beginPath();
-			ctx.lineCap = 'round';
-			ctx.lineWidth = 2;
-			ctx.strokeStyle = '#ff0000';
-			ctx.moveTo(player.x, player.y);
-			ctx.lineTo(aim.x, aim.y);
-			ctx.stroke();
-			ctx.restore();
 
 			// Player
 			ctx.save();
@@ -90,6 +79,26 @@
 			ctx.moveTo(aim.x, aim.y + 4);
 			ctx.lineTo(aim.x, aim.y + 14);
 			ctx.stroke();
+			ctx.restore();
+
+			// Arrow
+			const dx = aim.x - player.x;
+			const dy = aim.y - player.y;
+			const angle = Math.atan2(dy, dx);
+
+			const DISTANCE = 80; 
+
+			const x = player.x + Math.cos(angle) * DISTANCE;
+			const y = player.y + Math.sin(angle) * DISTANCE;
+
+			ctx.save();
+			ctx.translate(x, y);
+			ctx.rotate(angle); 
+			ctx.font = '3em sans-serif';
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
+			ctx.fillStyle = '#e0f2fe';
+			ctx.fillText('➤', 0, 0);
 			ctx.restore();
 		}
 
